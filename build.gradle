@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-//	implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // jpa
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // jpa
 
 	implementation 'org.springframework.boot:spring-boot-starter-web' // web
 	compileOnly 'org.projectlombok:lombok' // 롬복
@@ -36,18 +36,18 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
 	// mysql
-//	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'com.mysql:mysql-connector-j'
 
 //	// QueryDSL 전용 라이브러리
-//	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
-//	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-//	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
-//	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
-//	// =============
-//	implementation 'org.springframework.boot:spring-boot-devtools' // 데브툴
-//	implementation 'org.springframework.boot:spring-boot-starter-validation'
-//
-//	implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1") // DB 쿼리, value 확인 라이브러리 [실버전에서는 제거 필요 성능이슈]
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	// =============
+	implementation 'org.springframework.boot:spring-boot-devtools' // 데브툴
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1") // DB 쿼리, value 확인 라이브러리 [실버전에서는 제거 필요 성능이슈]
 
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
