@@ -48,7 +48,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1") // DB 쿼리, value 확인 라이브러리 [실버전에서는 제거 필요 성능이슈]
-
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'

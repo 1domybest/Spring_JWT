@@ -1,6 +1,7 @@
 package com.example.Spring_JWT.jwt;
 
 
+import com.example.Spring_JWT.dto.CustomUserDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,19 +12,24 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
+    private final JWTUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
         System.out.println("생성자 진입");
         this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil;
 
         // 기본 경로를 "/login"으로 변경
         setFilterProcessesUrl("/login");
@@ -61,13 +67,27 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         System.out.println("Authentication 검증 성공!");
-        super.successfulAuthentication(request, response, chain, authResult);
+        CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
+        String username = customUserDetails.getUsername();
+
+        Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
+        Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+        GrantedAuthority auth = iterator.next();
+        String role = auth.getAuthority();
+
+        Long expiredMs = 60 * 60 * 10L;  // 60초 * 60분 * 10시간 = 10시간
+
+        String token = jwtUtil.createJwt(username, role, expiredMs);
+
+        // Bearer 하고 띄어쓰기를 꼭해야함
+        // Authorization: Bearer token
+        response.addHeader("Authorization", "Bearer " + token);
     }
 
     // 검증 실패시 받는 이벤트 콜백
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         System.out.println("Authentication 검증 실패 ㅠㅠ");
-        super.unsuccessfulAuthentication(request, response, failed);
+        response.setStatus(401); // 토큰 검증실패 status code 401
     }
 }

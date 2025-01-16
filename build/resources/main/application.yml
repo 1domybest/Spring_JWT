@@ -5,6 +5,8 @@ spring:
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
+  jwt:
+    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
 
 
   jpa:
@@ -26,3 +28,8 @@ logging:
 #    org.hibernate.orm.jdbc.bind: trace
 
 
+# jwt 시크릿 코드 변수
+#  jwt:
+#    secret: askdlaskdlasaskdlask
+# 여기에서 secret은 변수명임
+# JWT Util에서 사용할 변수명
