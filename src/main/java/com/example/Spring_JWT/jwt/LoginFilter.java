@@ -1,6 +1,7 @@
 package com.example.Spring_JWT.jwt;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +14,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.util.Map;
 
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -23,8 +25,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         System.out.println("생성자 진입");
         this.authenticationManager = authenticationManager;
 
-        // 기본 경로를 "/join"으로 변경
-        setFilterProcessesUrl("/join");
+        // 기본 경로를 "/login"으로 변경
+        setFilterProcessesUrl("/login");
     }
 
     @Override
@@ -33,15 +35,20 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 순서는 /join -> SecurityConfig 안에 설정에따라 어디서 검증할지 확인후 이동 (http.addFilterAt(new LoginFilter(), UsernamePasswordAuthenticationFilter.class);)
         // -> attemptAuthentication -> AuthenticationManager -> JoinService -> DB
 
-//        // JSON 데이터 파싱 받는 데이터형식이 form이아닌 json이라면
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        Map<String, String> jsonMap = objectMapper.readValue(request.getInputStream(), Map.class);
-//
-//        username = jsonMap.get("username");
-//        password = jsonMap.get("password");
+        // JSON 데이터 파싱 받는 데이터형식이 form이아닌 json이라면
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> jsonMap = null;
+        try {
+            jsonMap = objectMapper.readValue(request.getInputStream(), Map.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        String username = obtainUsername(request);
-        String password = obtainPassword(request);
+        String username = jsonMap.get("username");
+        String password = jsonMap.get("password");
+
+//        String username = obtainUsername(request);
+//        String password = obtainPassword(request);
 
         System.out.println("유저이름:" + username + "비밀번호 :" + password);
 
