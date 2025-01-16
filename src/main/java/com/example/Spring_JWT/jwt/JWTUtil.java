@@ -58,9 +58,10 @@ public class JWTUtil {
      * @return Boolean True = 유효, False = 만료
      */
     public Boolean isExpired(String token) {
+        System.out.println("현재 시간 " + new Date(System.currentTimeMillis()));
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
-
+//현재 시간 Thu Jan 16 16:50:08 KST 2025
     /**
      * 토큰 발급
      * @param username 유저이름
@@ -69,6 +70,7 @@ public class JWTUtil {
      * @return String JWT 토큰
      */
     public String createJwt(String username, String role, Long expiredMs) {
+        System.out.println("등록한 시간 " + new Date(System.currentTimeMillis() + expiredMs));
         return Jwts.builder()
                 .claim("username", username)
                 .claim("role", role)

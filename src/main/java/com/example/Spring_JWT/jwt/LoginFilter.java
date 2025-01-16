@@ -75,7 +75,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        Long expiredMs = 60 * 60 * 10L;  // 60초 * 60분 * 10시간 = 10시간
+        long anHour = 60 * 60 * 1000L; // 10시간
+        Long expiredMs = anHour * 10;  // 60초 * 60분 * 10시간 = 10시간
 
         String token = jwtUtil.createJwt(username, role, expiredMs);
 
