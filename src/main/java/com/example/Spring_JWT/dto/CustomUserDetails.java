@@ -8,8 +8,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
+
+// 유저정보로 비지니스 로직 가공
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
