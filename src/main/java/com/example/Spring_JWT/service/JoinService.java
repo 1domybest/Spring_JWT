@@ -16,7 +16,7 @@ public class JoinService {
 
 
     public void joinProcess(JoinDTO joinDTO) {
-
+        System.out.println("JWT log: " + "JoinService joinProcess");
         String username = joinDTO.getUsername();
         String password = joinDTO.getPassword();
 

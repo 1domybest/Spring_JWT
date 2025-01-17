@@ -17,6 +17,7 @@ public class MainController {
 
     @GetMapping("/")
     public String mainP() {
+        System.out.println("JWT log: " + "MainController mainP");
         SecurityContext context = SecurityContextHolder.getContext();
 
         String username = context.getAuthentication().getName();

@@ -17,6 +17,7 @@ public class JoinController {
 
     @PostMapping("/join")
     public String joinProcess(@RequestBody JoinDTO joinDTO) {
+        System.out.println("JWT log: " + "JoinController joinProcess");
         joinService.joinProcess(joinDTO);
         return "ok";
     }

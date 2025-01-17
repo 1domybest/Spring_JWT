@@ -10,6 +10,7 @@ public class AdminController {
 
     @GetMapping("/admin")
     public String adminP() {
+        System.out.println("JWT log: " + "AdminController adminP");
         return "admin Controller";
     }
 }

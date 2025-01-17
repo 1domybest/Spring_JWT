@@ -31,6 +31,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+        System.out.println("JWT log: " + "SecurityConfig authenticationManager");
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -41,6 +42,7 @@ public class SecurityConfig {
      */
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
+        System.out.println("JWT log: " + "bCryptPasswordEncoder");
         return new BCryptPasswordEncoder();
     }
 
@@ -50,7 +52,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("필터진입");
+        System.out.println("JWT log: " + "filterChain");
         http
                 .cors((cors) -> cors
                         .configurationSource(new CorsConfigurationSource() {

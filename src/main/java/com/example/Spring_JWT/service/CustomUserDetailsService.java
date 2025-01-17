@@ -17,6 +17,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("JWT log: " + "CustomUserDetailsService loadUserByUsername");
         System.out.println("들어온 유저이름 " + username);
         UserEntity userEntity = this.userRepository.findByUsername(username);
         if (userEntity != null) {
