@@ -1,6 +1,7 @@
 package com.example.Spring_JWT.controller;
 
 import com.example.Spring_JWT.jwt.JWTUtil;
+import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 
@@ -60,11 +61,11 @@ public class ReissueController {
         String username = jwtUtil.getUsername(refresh);
         String role = jwtUtil.getRole(refresh);
 
-        //make new JWT
-        String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
+        String newAccess = jwtUtil.createJwt("access", username, role, JwtConstants.ACCESS_EXPIRED_MS);
+        String newRefresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
-        //response
-        response.setHeader("access", newAccess);
+        jwtUtil.addCookieRefreshToken(newRefresh, response, JwtConstants.REFRESH_EXPIRED_MS);
+        jwtUtil.addHeaderAccessToken(newAccess, response);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

@@ -1,6 +1,9 @@
 package com.example.Spring_JWT.jwt;
 
+import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -70,7 +73,7 @@ public class JWTUtil {
      * @return String JWT 토큰
      */
     public String createJwt(String category, String username, String role, Long expiredMs) {
-        System.out.println("등록한 시간 " + new Date(System.currentTimeMillis() + expiredMs));
+
         return Jwts.builder()
                 .claim("category", category)
                 .claim("username", username)
@@ -91,5 +94,31 @@ public class JWTUtil {
         return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
     }
 
+    /**
+     * 리프레쉬 토큰을 넣을 Cookie [path를 여러군데에 설정하고싶다면 Cookie 를 그만큼 생성해야환다.]
+     * @param key 쿠키 키 [refresh or access]
+     * @param value 쿠키 값
+     * @param expiredMs 유효시간 밀리세컨즈
+     * @return
+     */
+    public Cookie createCookie(String key, String value, Long expiredMs) {
+        int maxAgeInSeconds = (int) (expiredMs / 1000);
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(maxAgeInSeconds);
+        //cookie.setSecure(true); // Https(인증서) 일시 이걸 true로
+        //cookie.setPath("/"); // 쿠키를 허용한 Path
+        cookie.setHttpOnly(true);
 
+        return cookie;
+    }
+
+
+    public void addHeaderAccessToken(String token, HttpServletResponse response) {
+        response.addHeader("Authorization", "Bearer " + token);
+    }
+
+    public void addCookieRefreshToken(String token, HttpServletResponse response, Long expiredMs) {
+        Cookie cookie = createCookie("refresh", token, expiredMs);
+        response.addCookie(cookie);
+    }
 }

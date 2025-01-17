@@ -2,6 +2,7 @@ package com.example.Spring_JWT.jwt;
 
 
 import com.example.Spring_JWT.dto.CustomUserDetails;
+import com.example.Spring_JWT.util.JwtConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -81,20 +82,15 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        long anHour = 60 * 60 * 1000L; // 10시간
-        Long accessExpiredMs = anHour * 10;  // 60초 * 60분 * 10시간 = 10시간
-        Long refreshExpiredMs = anHour * 24;  // 60초 * 60분 * 24시간 = 24시간
+        String access = jwtUtil.createJwt("access", username, role, JwtConstants.ACCESS_EXPIRED_MS);
+        String refresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
-        String access = jwtUtil.createJwt("access", username, role, accessExpiredMs);
-        String refresh = jwtUtil.createJwt("refresh", username, role, refreshExpiredMs);
-        // Bearer 하고 띄어쓰기를 꼭해야함
-        // Authorization: Bearer token
-        response.addHeader("Authorization", "Bearer " + access);
-        response.addCookie(createCookie("refresh", refresh, refreshExpiredMs));
+        jwtUtil.addHeaderAccessToken(access, response);
+        jwtUtil.addCookieRefreshToken(refresh, response, JwtConstants.REFRESH_EXPIRED_MS);
 
         response.setStatus(HttpStatus.OK.value());
 
-        clearAllCookies(request, response); // 테스트환경을 위한 쿠키 전체삭제
+//        clearAllCookies(request, response); // 테스트환경을 위한 쿠키 전체삭제
     }
 
     // 검증 실패시 받는 이벤트 콜백
@@ -103,24 +99,6 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         System.out.println("JWT log: " + "LoginFilter unsuccessfulAuthentication");
         System.out.println("Authentication 검증 실패 ㅠㅠ");
         response.setStatus(401); // 토큰 검증실패 status code 401
-    }
-
-    /**
-     * 리프레쉬 토큰을 넣을 Cookie [path를 여러군데에 설정하고싶다면 Cookie 를 그만큼 생성해야환다.]
-     * @param key 쿠키 키 [refresh or access]
-     * @param value 쿠키 값
-     * @param expiredMs 유효시간 밀리세컨즈
-     * @return
-     */
-    private Cookie createCookie(String key, String value, Long expiredMs) {
-        int maxAgeInSeconds = (int) (expiredMs / 1000);
-        Cookie cookie = new Cookie(key, value);
-        cookie.setMaxAge(maxAgeInSeconds);
-        //cookie.setSecure(true); // Https(인증서) 일시 이걸 true로
-        //cookie.setPath("/"); // 쿠키를 허용한 Path
-        cookie.setHttpOnly(true);
-
-        return cookie;
     }
 
 
