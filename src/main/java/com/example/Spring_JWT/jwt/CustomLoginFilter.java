@@ -2,16 +2,13 @@ package com.example.Spring_JWT.jwt;
 
 
 import com.example.Spring_JWT.dto.CustomUserDetails;
-import com.example.Spring_JWT.entity.RefreshEntity;
-import com.example.Spring_JWT.repository.RefreshRepository;
+import com.example.Spring_JWT.repository.AuthRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,18 +16,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.*;
 
 
-public class LoginFilter extends UsernamePasswordAuthenticationFilter {
+/**
+ * @see com.example.Spring_JWT.config.SecurityConfig 에서 사용하는 로그인 요청 필터
+ */
+public class CustomLoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository) {
+    public CustomLoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, AuthRepository authRepository) {
         System.out.println("JWT log: " + "LoginFilter");
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
@@ -39,12 +38,13 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         setFilterProcessesUrl("/login");
     }
 
+    /**
+     * @see com.example.Spring_JWT.config.SecurityConfig 에서 
+     * 등록된 필터의 순서에따라 순차적으로 실행되고 차례가 되었을때 가장먼저 실행되는 부분
+     */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         System.out.println("JWT log: " + "LoginFilter attemptAuthentication");
-        // /join 으로 들어올시 이곳을 거치고 여기에서 authToken 매니저에 아이디와 비밀번호를 넘겨준다 단 UsernamePasswordAuthenticationToken 로 감싸서 넘겨야함
-        // 순서는 /join -> SecurityConfig 안에 설정에따라 어디서 검증할지 확인후 이동 (http.addFilterAt(new LoginFilter(), UsernamePasswordAuthenticationFilter.class);)
-        // -> attemptAuthentication -> AuthenticationManager -> JoinService -> DB
 
         // JSON 데이터 파싱 받는 데이터형식이 form 이아닌 json 이라면
         ObjectMapper objectMapper = new ObjectMapper();
@@ -52,6 +52,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         try {
             jsonMap = objectMapper.readValue(request.getInputStream(), Map.class);
         } catch (IOException e) {
+            // 데이터가 없음으로 예외처리
             throw new RuntimeException(e);
         }
         String username = jsonMap.get("username").toString();
@@ -64,7 +65,15 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         return authenticationManager.authenticate(authToken);
     }
 
-    // 검증 성공시 받는 이벤트 콜백
+    /**
+     * 토큰 검증이 성공하였을때 호출되는 함수
+     * @param request http 요청
+     * @param response http 반환
+     * @param chain 필터체인 = 다음필터로 넘기기위해 사용
+     * @param authResult 검증 결과
+     * @throws IOException IO 예외
+     * @throws ServletException 통신 예외
+     */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         System.out.println("JWT log: " + "LoginFilter successfulAuthentication");
@@ -78,8 +87,8 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         GrantedAuthority auth = iterator.next();
         String role = auth.getAuthority();
 
-        String access = jwtUtil.createJwt("access", username, role, JwtConstants.ACCESS_EXPIRED_MS);
-        String refresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
+        String access = jwtUtil.createJwt(JwtConstants.ACCESS, username, role, JwtConstants.ACCESS_EXPIRED_MS);
+        String refresh = jwtUtil.createJwt(JwtConstants.REFRESH, username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
         //새로운 refresh 생성
         jwtUtil.addRefreshEntity(username, refresh, JwtConstants.REFRESH_EXPIRED_MS);
@@ -96,7 +105,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 //        jwtUtil.clearAllCookies(request, response);
     }
 
-    // 검증 실패시 받는 이벤트 콜백
+    /**
+     *
+     * @param request http 요청
+     * @param response http 반환
+     * @param failed 검증 실패시 예외
+     * @throws IOException IO 예외
+     * @throws ServletException 통신 예외
+     */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         System.out.println("JWT log: " + "LoginFilter unsuccessfulAuthentication");

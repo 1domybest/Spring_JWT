@@ -1,9 +1,11 @@
 package com.example.Spring_JWT.config;
 
+import com.example.Spring_JWT.jwt.CustomLogoutFilter;
 import com.example.Spring_JWT.jwt.JWTFilter;
 import com.example.Spring_JWT.jwt.JWTUtil;
-import com.example.Spring_JWT.jwt.LoginFilter;
-import com.example.Spring_JWT.repository.RefreshRepository;
+import com.example.Spring_JWT.jwt.CustomLoginFilter;
+import com.example.Spring_JWT.repository.AuthRepository;
+import com.example.Spring_JWT.util.CommonConstants;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -16,21 +18,42 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Collections;
 
+/**
+ * 스프링 시큐리티
+ */
 @Configuration // 설정파일이다
 @EnableWebSecurity // 시큐리티 파일이다
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    /**
+     * 시큐리티 검증설정 객체
+     */
     private final AuthenticationConfiguration authenticationConfiguration;
+
+    /**
+     * JWT 관련 유틸함수 모음
+     */
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+
+    /**
+     * 토큰저장 전용 Entity
+     */
+    private final AuthRepository authRepository;
 
 
+    /**
+     * SecurityFilterChain filterChain 가 실행되고 build 된후 호출되는 함수
+     * @param authenticationConfiguration 보안 검증설정 객체
+     * @return AuthenticationManager 검증객체 매니저
+     * @throws Exception 예외
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         System.out.println("JWT log: " + "SecurityConfig authenticationManager");
@@ -50,6 +73,8 @@ public class SecurityConfig {
 
     /**
      * 시큐리티 필터체인 설정
+     * 이곳에서 보안설정을 한다
+     * 앱이 실행되고 단 1번 호출됨
      * @return SecurityFilterChain
      */
     @Bean
@@ -65,7 +90,7 @@ public class SecurityConfig {
                                 // 리소스의 교차로인한 충돌에러인데 그렇기때문에 이 백엔드서버가 반환해주는 주소중에
                                 // 이런것을 허용할 주소를 저장해두는 작업을 뜻한다.
                                 // CorsMvcConfig 에도 만들어서 이 주소를 사용하는것보니 스태틱으로 관리하거나 yml로 관리하는게 좋겠다.
-                                configuration.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+                                configuration.setAllowedOrigins(Collections.singletonList(CommonConstants.WEB_CLIENT_URL));
                                 configuration.setAllowedMethods(Collections.singletonList("*"));
                                 configuration.setAllowCredentials(true);
                                 configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -74,6 +99,7 @@ public class SecurityConfig {
                                 // 이시간안에서는 추가로 cors검사를 하지않는다.
                                 configuration.setMaxAge(3600L);
 
+                                // 노출할 헤더 명
                                 configuration.setExposedHeaders(Collections.singletonList("Authorization"));
                                 return null;
                             }
@@ -111,15 +137,18 @@ public class SecurityConfig {
 
         // LoginFilter 가 실행되기 전에 JWTFilter를 실행하겠다
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+                .addFilterBefore(new JWTFilter(jwtUtil), CustomLoginFilter.class);
 
         // LoginFilter 를 즉시 실행하겠다
         http
                 .addFilterAt(
-                        new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository),
+                        new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, authRepository),
                         UsernamePasswordAuthenticationFilter.class
                 );
-
+        http
+                .addFilterBefore(new CustomLogoutFilter(jwtUtil, authRepository), LogoutFilter.class);
+        // CustomLogoutFilter는 LogoutFilter을 상속받았기때문에 기본적으로 LogoutFilter가 먼저 실행되고 그안에서
+        // 따로 이베트 콜백을 받아서 커스텀한 비지니스 로직이 진행된다.
 
         // JWT 방식에서는 상태를 저장하지않기때문에 상태정책에서 빼겠다
         http

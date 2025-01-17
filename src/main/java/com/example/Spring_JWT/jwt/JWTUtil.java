@@ -1,15 +1,12 @@
 package com.example.Spring_JWT.jwt;
 
-import com.example.Spring_JWT.entity.RefreshEntity;
-import com.example.Spring_JWT.repository.RefreshRepository;
-import com.example.Spring_JWT.util.JwtConstants;
+import com.example.Spring_JWT.entity.AuthEntity;
+import com.example.Spring_JWT.repository.AuthRepository;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -17,16 +14,23 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-// 이부분은 토큰을 생성하거나 수정 등 tool 클래스
+
+/**
+ * @see JWTUtil 토큰을 발급 or 재발급 or 토큰을 사용한 정보 추출을 위한 유틸 객체
+ */
 @Component
 public class JWTUtil {
+    /**
+     * 각 회사에서 사용하는 보안키로
+     * application.yml 내 spring.jwt.secret 에 저장되어있다.
+     */
     private final SecretKey secretKey;
-    private final RefreshRepository refreshRepository;
+    private final AuthRepository authRepository;
 
-    public JWTUtil(@Value("${spring.jwt.secret}") String secret, RefreshRepository refreshRepository) {
+    public JWTUtil(@Value("${spring.jwt.secret}") String secret, AuthRepository authRepository) {
         System.out.println("JWT log: " + "JWTUtil");
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
-        this.refreshRepository = refreshRepository;
+        this.authRepository = authRepository;
     }
 
     /**
@@ -117,34 +121,52 @@ public class JWTUtil {
         return cookie;
     }
 
-
-    public void addHeaderAccessToken(String token, HttpServletResponse response) {
-        response.addHeader("Authorization", "Bearer " + token);
+    /**
+     * accessToken 을 Header 에 넣는 공통 함수
+     * @param accessToken 엑세스 토큰
+     * @param response 토큰을 담을 response
+     */
+    public void addHeaderAccessToken(String accessToken, HttpServletResponse response) {
+        response.addHeader("Authorization", "Bearer " + accessToken);
     }
 
-    public void addCookieRefreshToken(String token, HttpServletResponse response, Long expiredMs) {
-        Cookie cookie = createCookie("refresh", token, expiredMs);
+    /**
+     * refresh token 을 쿠키에 저장하기위한 공통 함수
+     * @param refreshToken 재발급을 위한 리프레시 토큰
+     * @param response 쿠키를 담을 response
+     * @param expiredMs 쿠키 유효기간
+     */
+    public void addCookieRefreshToken(String refreshToken, HttpServletResponse response, Long expiredMs) {
+        Cookie cookie = createCookie("refresh", refreshToken, expiredMs);
         response.addCookie(cookie);
     }
 
+    /**
+     * refresh token 을 서버 DB에 저장하기위한 함수
+     * 기본적으로 refresh token 을 사용하여 access token 재발급할시
+     * DB의 저장되어있는 refresh token 을 삭제하고 새로 저장하여 복제를 방지
+     * @param username 사용자 이름
+     * @param refresh 리프레시 토큰
+     * @param expiredMs 리프레시 토큰 유효기간
+     */
     public void addRefreshEntity(String username, String refresh, Long expiredMs) {
 
         Date date = new Date(System.currentTimeMillis() + expiredMs);
 
-        RefreshEntity refreshEntity = new RefreshEntity();
-        refreshEntity.setUsername(username);
-        refreshEntity.setRefresh(refresh);
-        refreshEntity.setExpiration(date.toString());
+        AuthEntity authEntity = new AuthEntity();
+        authEntity.setUsername(username);
+        authEntity.setRefreshToken(refresh);
+        authEntity.setExpiration(date.toString());
 
-        refreshRepository.save(refreshEntity);
+        authRepository.save(authEntity);
     }
 
 
     // ========================
     /**
-     * 쿠키 삭제
-     * @param response
-     * @param key
+     * 특정 Key 를 가진 쿠키 삭제
+     * @param response 삭제할 response
+     * @param key 쿠키의 key
      */
     public void deleteCookie(HttpServletResponse response, String key) {
         Cookie cookie = new Cookie(key, null); // 값은 null로 설정
@@ -157,8 +179,8 @@ public class JWTUtil {
 
     /**
      * 쿠키 전체 삭제
-     * @param request
-     * @param response
+     * @param request 요청
+     * @param response 반환
      */
     public void clearAllCookies(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();

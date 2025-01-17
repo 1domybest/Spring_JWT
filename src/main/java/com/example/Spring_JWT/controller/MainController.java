@@ -1,5 +1,7 @@
 package com.example.Spring_JWT.controller;
 
+import com.example.Spring_JWT.util.SecurityContextUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -14,20 +16,11 @@ import java.util.Iterator;
 public class MainController {
 
     @GetMapping("/")
-    public String mainP() {
+    public String mainP(HttpServletResponse response) {
         System.out.println("JWT log: " + "MainController mainP");
-        SecurityContext context = SecurityContextHolder.getContext();
-
-        String username = context.getAuthentication().getName();
-        Authentication authentication = context.getAuthentication();
-
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        Iterator<? extends GrantedAuthority> iter = authorities.iterator();
-        GrantedAuthority auth = iter.next();
-
-        String role = auth.getAuthority();
-
-        return "main Controller" + username + role;
+        String userInfo = SecurityContextUtil.getUserInfoBySecurityContext(response);
+        System.out.println("userInfo: " + userInfo);
+        return "main Controller" + userInfo;
     }
 
 }

@@ -1,7 +1,7 @@
 package com.example.Spring_JWT.controller;
 
 import com.example.Spring_JWT.jwt.JWTUtil;
-import com.example.Spring_JWT.repository.RefreshRepository;
+import com.example.Spring_JWT.repository.AuthRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
@@ -13,18 +13,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class ReissueController {
+public class AuthController {
 
     private final JWTUtil jwtUtil;
-    private final RefreshRepository refreshRepository;
+    private final AuthRepository authRepository;
 
-    @PostMapping("/reissue")
-    public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
+    @PostMapping("/token-refresh")
+    public ResponseEntity<?> tokenRefresh(HttpServletRequest request, HttpServletResponse response) {
         //get refresh token
         String refresh = null;
         Cookie[] cookies = request.getCookies();
@@ -52,7 +51,7 @@ public class ReissueController {
         }
 
         //DB에 저장되어 있는지 확인
-        Boolean isExist = refreshRepository.existsByRefresh(refresh);
+        Boolean isExist = authRepository.existsByRefreshToken(refresh);
         if (!isExist) {
 
             //response body
@@ -75,7 +74,7 @@ public class ReissueController {
         String newRefresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
         //기존 Refresh 토큰 DB에서 삭제
-        refreshRepository.deleteByRefresh(refresh);
+        authRepository.deleteByRefreshToken(refresh);
 
         //새로운 refresh 생성
         jwtUtil.addRefreshEntity(username, newRefresh, JwtConstants.REFRESH_EXPIRED_MS);

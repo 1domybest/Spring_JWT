@@ -17,11 +17,22 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Objects;
 
+/**
+ * 토큰 검증 클래스
+ * @see com.example.Spring_JWT.config.SecurityConfig 에서 사용하는 JWT 토큰 검증 요청 필터
+ */
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
 
+    /**
+     * 토큰을 발급 or 재발급 or 토큰을 사용한 정보 추출을 위한 유틸 객체
+     */
     private final JWTUtil jwtUtil;
 
+    /**
+     * @see com.example.Spring_JWT.config.SecurityConfig 에서
+     * 등록된 필터의 순서에따라 순차적으로 실행되고 차례가 되었을때 가장먼저 실행되는 부분
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("JWT log: " + "JWTFilter doFilterInternal");
