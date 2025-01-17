@@ -40,7 +40,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        System.out.println("JWT log: " + "attemptAuthentication");
+        System.out.println("JWT log: " + "LoginFilter attemptAuthentication");
         // /join 으로 들어올시 이곳을 거치고 여기에서 authToken 매니저에 아이디와 비밀번호를 넘겨준다 단 UsernamePasswordAuthenticationToken 로 감싸서 넘겨야함
         // 순서는 /join -> SecurityConfig 안에 설정에따라 어디서 검증할지 확인후 이동 (http.addFilterAt(new LoginFilter(), UsernamePasswordAuthenticationFilter.class);)
         // -> attemptAuthentication -> AuthenticationManager -> JoinService -> DB
@@ -70,7 +70,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // 검증 성공시 받는 이벤트 콜백
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-        System.out.println("JWT log: " + "successfulAuthentication");
+        System.out.println("JWT log: " + "LoginFilter successfulAuthentication");
         System.out.println("Authentication 검증 성공!");
         CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
         String username = customUserDetails.getUsername();
@@ -100,7 +100,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     // 검증 실패시 받는 이벤트 콜백
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        System.out.println("JWT log: " + "unsuccessfulAuthentication");
+        System.out.println("JWT log: " + "LoginFilter unsuccessfulAuthentication");
         System.out.println("Authentication 검증 실패 ㅠㅠ");
         response.setStatus(401); // 토큰 검증실패 status code 401
     }

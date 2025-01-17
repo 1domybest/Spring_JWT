@@ -42,7 +42,7 @@ public class SecurityConfig {
      */
     @Bean
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
-        System.out.println("JWT log: " + "bCryptPasswordEncoder");
+        System.out.println("JWT log: " + "SecurityConfig bCryptPasswordEncoder");
         return new BCryptPasswordEncoder();
     }
 
@@ -52,7 +52,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        System.out.println("JWT log: " + "filterChain");
+        System.out.println("JWT log: " + "SecurityConfig filterChain");
         http
                 .cors((cors) -> cors
                         .configurationSource(new CorsConfigurationSource() {
