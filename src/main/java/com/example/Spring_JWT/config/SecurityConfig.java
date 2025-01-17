@@ -94,7 +94,11 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/login", "/", "/join").permitAll() // 허용
-                .requestMatchers("/admin").hasRole("ADMIN") // 권한필요
+                .requestMatchers("/admin").hasRole("ADMIN")
+                .requestMatchers("/reissue").permitAll()
+                // 권한필요 단 토큰이 없는데 여기까지 올일이 없음
+                // 단 혹시나 토큰이 없거나 role이 다르다면 바로 다음 필터로 넘어감
+
                 .anyRequest().authenticated() // 나머지는 다 가능 else
         );
 

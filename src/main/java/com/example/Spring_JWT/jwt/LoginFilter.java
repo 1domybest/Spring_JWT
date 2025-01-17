@@ -94,7 +94,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         response.setStatus(HttpStatus.OK.value());
 
-//        clearAllCookies(request, response); // 테스트환경을 위한 쿠키 전체삭제
+        clearAllCookies(request, response); // 테스트환경을 위한 쿠키 전체삭제
     }
 
     // 검증 실패시 받는 이벤트 콜백

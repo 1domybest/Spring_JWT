@@ -35,8 +35,10 @@ public class JWTFilter extends OncePerRequestFilter {
             // accessToken 이 없다는건 login 전 상태 요청일수도 있으니까 다음 필터로 넘기고 로그인을 진행해면 된다.
             // 아마 이다음 필터는 LoginFilter 임
             filterChain.doFilter(request, response);
-
+            System.out.println("토큰이 없음");
             return;
+        } else {
+            System.out.println("토큰이 있음");
         }
 
         // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
@@ -68,6 +70,8 @@ public class JWTFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
+
+        System.out.println("access token 괜찮");
 
         // username, role 값을 획득
         String username = jwtUtil.getUsername(accessToken);
