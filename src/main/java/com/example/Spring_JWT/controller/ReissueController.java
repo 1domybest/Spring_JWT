@@ -76,6 +76,7 @@ public class ReissueController {
 
         //기존 Refresh 토큰 DB에서 삭제
         refreshRepository.deleteByRefresh(refresh);
+
         //새로운 refresh 생성
         jwtUtil.addRefreshEntity(username, newRefresh, JwtConstants.REFRESH_EXPIRED_MS);
 

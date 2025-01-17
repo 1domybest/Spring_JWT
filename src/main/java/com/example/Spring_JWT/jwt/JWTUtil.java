@@ -5,6 +5,7 @@ import com.example.Spring_JWT.repository.RefreshRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -136,5 +137,35 @@ public class JWTUtil {
         refreshEntity.setExpiration(date.toString());
 
         refreshRepository.save(refreshEntity);
+    }
+
+
+    // ========================
+    /**
+     * 쿠키 삭제
+     * @param response
+     * @param key
+     */
+    public void deleteCookie(HttpServletResponse response, String key) {
+        Cookie cookie = new Cookie(key, null); // 값은 null로 설정
+        cookie.setPath("/"); // 원래 쿠키의 Path와 동일하게 설정해야 함
+        cookie.setMaxAge(0); // 0으로 설정하여 즉시 만료
+        cookie.setHttpOnly(true); // 기존 쿠키의 설정과 일치시켜야 함
+        response.addCookie(cookie); // 응답에 삭제용 쿠키 추가
+    }
+
+
+    /**
+     * 쿠키 전체 삭제
+     * @param request
+     * @param response
+     */
+    public void clearAllCookies(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                deleteCookie(response, cookie.getName());;
+            }
+        }
     }
 }

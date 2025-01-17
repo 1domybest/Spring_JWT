@@ -46,20 +46,16 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         // 순서는 /join -> SecurityConfig 안에 설정에따라 어디서 검증할지 확인후 이동 (http.addFilterAt(new LoginFilter(), UsernamePasswordAuthenticationFilter.class);)
         // -> attemptAuthentication -> AuthenticationManager -> JoinService -> DB
 
-        // JSON 데이터 파싱 받는 데이터형식이 form이아닌 json이라면
+        // JSON 데이터 파싱 받는 데이터형식이 form 이아닌 json 이라면
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, String> jsonMap = null;
+        Map jsonMap = null;
         try {
             jsonMap = objectMapper.readValue(request.getInputStream(), Map.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        String username = jsonMap.get("username");
-        String password = jsonMap.get("password");
-
-//        String username = obtainUsername(request);
-//        String password = obtainPassword(request);
+        String username = jsonMap.get("username").toString();
+        String password = jsonMap.get("password").toString();
 
         System.out.println("유저이름:" + username + "비밀번호 :" + password);
 
@@ -72,7 +68,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         System.out.println("JWT log: " + "LoginFilter successfulAuthentication");
-        System.out.println("Authentication 검증 성공!");
+
         CustomUserDetails customUserDetails = (CustomUserDetails) authResult.getPrincipal();
         String username = customUserDetails.getUsername();
         Long memberId = customUserDetails.getMemberId();
@@ -96,43 +92,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         response.setStatus(HttpStatus.OK.value());
 
-//        clearAllCookies(request, response); // 테스트환경을 위한 쿠키 전체삭제
+//        // 테스트를 위한 쿠키 클리어
+//        jwtUtil.clearAllCookies(request, response);
     }
 
     // 검증 실패시 받는 이벤트 콜백
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         System.out.println("JWT log: " + "LoginFilter unsuccessfulAuthentication");
-        System.out.println("Authentication 검증 실패 ㅠㅠ");
         response.setStatus(401); // 토큰 검증실패 status code 401
-    }
-
-
-    /**
-     * 쿠키 삭제
-     * @param response
-     * @param key
-     */
-    private void deleteCookie(HttpServletResponse response, String key) {
-        Cookie cookie = new Cookie(key, null); // 값은 null로 설정
-        cookie.setPath("/"); // 원래 쿠키의 Path와 동일하게 설정해야 함
-        cookie.setMaxAge(0); // 0으로 설정하여 즉시 만료
-        cookie.setHttpOnly(true); // 기존 쿠키의 설정과 일치시켜야 함
-        response.addCookie(cookie); // 응답에 삭제용 쿠키 추가
-    }
-
-
-    /**
-     * 쿠키 전체 삭제
-     * @param request
-     * @param response
-     */
-    private void clearAllCookies(HttpServletRequest request, HttpServletResponse response) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                deleteCookie(response, cookie.getName());;
-            }
-        }
     }
 }
