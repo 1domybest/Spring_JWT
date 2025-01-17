@@ -11,6 +11,7 @@ import java.util.Collection;
 
 
 /**
+ * @see UserDetails
  * 시큐리티에서 제공하는 유저에대한 정보를 약속하에 UserDetails 라는 객체로 제공
  * 이 타입을 토대로 @Override 하여 제공하는 setter 에 검증에 필요한 값을 넣고 getter 할수있다.
  * 또한 추가로 커스텀하여 유저 Entity 에서 원하는 정보 반환하는 함수도 지정이 가능

@@ -49,7 +49,7 @@ public class SecurityConfig {
 
 
     /**
-     * SecurityFilterChain filterChain 가 실행되고 build 된후 호출되는 함수
+     * @see SecurityFilterChain 의 아래 filterChain 가 실행되고 http.build 된후 호출되는 함수
      * @param authenticationConfiguration 보안 검증설정 객체
      * @return AuthenticationManager 검증객체 매니저
      * @throws Exception 예외
@@ -79,9 +79,10 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         System.out.println("JWT log: " + "SecurityConfig filterChain");
-        http
-                .cors((cors) -> cors
+
+        http.cors((cors) -> cors
                         .configurationSource(new CorsConfigurationSource() {
                             @Override
                             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -105,20 +106,17 @@ public class SecurityConfig {
                             }
                         })
                 );
-        // csrf 비활성화
-        http
 
-                .csrf((auth) -> auth.disable());
+        // csrf 비활성화
+        http.csrf((auth) -> auth.disable());
 
         // web 이아니고 restful api 이기때문에
         // form 로그인 방식 비활성화
-        http
-                .formLogin((auth) -> auth.disable());
+        http.formLogin((auth) -> auth.disable());
 
         // web 이아니고 restful api 이기때문에
         // http basic 인증 방식 비활성화
-        http
-                .httpBasic((auth) -> auth.disable());
+        http.httpBasic((auth) -> auth.disable());
 
         http.authorizeHttpRequests((auth) -> auth
                 .requestMatchers("/login", "/", "/join").permitAll() // 허용
@@ -131,30 +129,27 @@ public class SecurityConfig {
         );
 
 
-
-        //  before At after 을 사용하는 이유는 이걸 지정하지않고 At을 사용한다면
-        // 동작의 순서가 보장되지 않기때문이다.
+        /*
+         * before At after 을 사용하는 이유는 이걸 지정하지않고 At을 사용한다면
+         * 동작의 순서가 보장되지 않기때문이다.
+         */
 
         // LoginFilter 가 실행되기 전에 JWTFilter를 실행하겠다
-        http
-                .addFilterBefore(new JWTFilter(jwtUtil), CustomLoginFilter.class);
+        http.addFilterBefore(new JWTFilter(jwtUtil), CustomLoginFilter.class);
 
         // LoginFilter 를 즉시 실행하겠다
-        http
-                .addFilterAt(
-                        new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, authRepository),
-                        UsernamePasswordAuthenticationFilter.class
-                );
-        http
-                .addFilterBefore(new CustomLogoutFilter(jwtUtil, authRepository), LogoutFilter.class);
-        // CustomLogoutFilter는 LogoutFilter을 상속받았기때문에 기본적으로 LogoutFilter가 먼저 실행되고 그안에서
+        http.addFilterAt(new CustomLoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, authRepository),
+                        UsernamePasswordAuthenticationFilter.class);
+
+
+        // CustomLogoutFilter 는 LogoutFilter 을 상속받았기때문에 기본적으로 LogoutFilter 가 먼저 실행되고 그안에서
         // 따로 이베트 콜백을 받아서 커스텀한 비지니스 로직이 진행된다.
+        http.addFilterBefore(new CustomLogoutFilter(jwtUtil, authRepository), LogoutFilter.class);
+
 
         // JWT 방식에서는 상태를 저장하지않기때문에 상태정책에서 빼겠다
-        http
-                .sessionManagement((session) -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+        http.sessionManagement((session) -> session
+                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         return http.build();
     }

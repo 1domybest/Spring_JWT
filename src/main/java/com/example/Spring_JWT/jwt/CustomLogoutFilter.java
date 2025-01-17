@@ -11,6 +11,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 import java.io.IOException;
 
@@ -24,7 +25,8 @@ public class CustomLogoutFilter extends GenericFilter {
     private final AuthRepository authRepository;
 
     /**
-     * 기본적으로 스프링 시큐리티에서 LogoutFilter 를 제공해줌으로써
+     * 기본적으로 스프링 시큐리티에서
+     * @see LogoutFilter 를 제공해줌으로써
      * 제공된 필터를 등록하고 logout 요청시 아래 doFilter 가 실행됨
      * 이후 내가 커스텀한 비지니스 로직(customDoFilter) 을 실행하면 됨
      * @param servletRequest http 요청
