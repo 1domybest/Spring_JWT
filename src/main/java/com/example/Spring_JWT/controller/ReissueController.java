@@ -1,6 +1,7 @@
 package com.example.Spring_JWT.controller;
 
 import com.example.Spring_JWT.jwt.JWTUtil;
+import com.example.Spring_JWT.repository.RefreshRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ReissueController {
 
     private final JWTUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
@@ -49,6 +51,14 @@ public class ReissueController {
             return new ResponseEntity<>("refresh token expired", HttpStatus.BAD_REQUEST);
         }
 
+        //DB에 저장되어 있는지 확인
+        Boolean isExist = refreshRepository.existsByRefresh(refresh);
+        if (!isExist) {
+
+            //response body
+            return new ResponseEntity<>("invalid refresh token", HttpStatus.BAD_REQUEST);
+        }
+
         // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
         String category = jwtUtil.getCategory(refresh);
 
@@ -64,7 +74,15 @@ public class ReissueController {
         String newAccess = jwtUtil.createJwt("access", username, role, JwtConstants.ACCESS_EXPIRED_MS);
         String newRefresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
+        //기존 Refresh 토큰 DB에서 삭제
+        refreshRepository.deleteByRefresh(refresh);
+        //새로운 refresh 생성
+        jwtUtil.addRefreshEntity(username, newRefresh, JwtConstants.REFRESH_EXPIRED_MS);
+
+        // 쿠키에 새로발급한 리프레쉬 토큰 저장
         jwtUtil.addCookieRefreshToken(newRefresh, response, JwtConstants.REFRESH_EXPIRED_MS);
+
+        // 헤더에 새로발급한 엑세스 토큰 저장
         jwtUtil.addHeaderAccessToken(newAccess, response);
 
         return new ResponseEntity<>(HttpStatus.OK);

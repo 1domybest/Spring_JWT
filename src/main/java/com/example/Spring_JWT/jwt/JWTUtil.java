@@ -1,5 +1,7 @@
 package com.example.Spring_JWT.jwt;
 
+import com.example.Spring_JWT.entity.RefreshEntity;
+import com.example.Spring_JWT.repository.RefreshRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.Cookie;
@@ -18,10 +20,12 @@ import java.util.Date;
 @Component
 public class JWTUtil {
     private final SecretKey secretKey;
+    private final RefreshRepository refreshRepository;
 
-    public JWTUtil(@Value("${spring.jwt.secret}") String secret) {
+    public JWTUtil(@Value("${spring.jwt.secret}") String secret, RefreshRepository refreshRepository) {
         System.out.println("JWT log: " + "JWTUtil");
         secretKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), Jwts.SIG.HS256.key().build().getAlgorithm());
+        this.refreshRepository = refreshRepository;
     }
 
     /**
@@ -120,5 +124,17 @@ public class JWTUtil {
     public void addCookieRefreshToken(String token, HttpServletResponse response, Long expiredMs) {
         Cookie cookie = createCookie("refresh", token, expiredMs);
         response.addCookie(cookie);
+    }
+
+    public void addRefreshEntity(String username, String refresh, Long expiredMs) {
+
+        Date date = new Date(System.currentTimeMillis() + expiredMs);
+
+        RefreshEntity refreshEntity = new RefreshEntity();
+        refreshEntity.setUsername(username);
+        refreshEntity.setRefresh(refresh);
+        refreshEntity.setExpiration(date.toString());
+
+        refreshRepository.save(refreshEntity);
     }
 }

@@ -2,6 +2,8 @@ package com.example.Spring_JWT.jwt;
 
 
 import com.example.Spring_JWT.dto.CustomUserDetails;
+import com.example.Spring_JWT.entity.RefreshEntity;
+import com.example.Spring_JWT.repository.RefreshRepository;
 import com.example.Spring_JWT.util.JwtConstants;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -17,12 +19,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
@@ -30,7 +30,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final JWTUtil jwtUtil;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
+    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil, RefreshRepository refreshRepository) {
         System.out.println("JWT log: " + "LoginFilter");
         this.authenticationManager = authenticationManager;
         this.jwtUtil = jwtUtil;
@@ -85,8 +85,14 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String access = jwtUtil.createJwt("access", username, role, JwtConstants.ACCESS_EXPIRED_MS);
         String refresh = jwtUtil.createJwt("refresh", username, role, JwtConstants.REFRESH_EXPIRED_MS);
 
-        jwtUtil.addHeaderAccessToken(access, response);
+        //새로운 refresh 생성
+        jwtUtil.addRefreshEntity(username, refresh, JwtConstants.REFRESH_EXPIRED_MS);
+
+        // 쿠키에 새로발급한 리프레쉬 토큰 저장
         jwtUtil.addCookieRefreshToken(refresh, response, JwtConstants.REFRESH_EXPIRED_MS);
+
+        // 헤더에 새로발급한 엑세스 토큰 저장
+        jwtUtil.addHeaderAccessToken(access, response);
 
         response.setStatus(HttpStatus.OK.value());
 

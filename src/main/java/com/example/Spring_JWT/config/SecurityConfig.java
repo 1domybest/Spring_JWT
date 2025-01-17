@@ -3,6 +3,7 @@ package com.example.Spring_JWT.config;
 import com.example.Spring_JWT.jwt.JWTFilter;
 import com.example.Spring_JWT.jwt.JWTUtil;
 import com.example.Spring_JWT.jwt.LoginFilter;
+import com.example.Spring_JWT.repository.RefreshRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JWTUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
 
     @Bean
@@ -114,7 +116,7 @@ public class SecurityConfig {
         // LoginFilter 를 즉시 실행하겠다
         http
                 .addFilterAt(
-                        new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil),
+                        new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository),
                         UsernamePasswordAuthenticationFilter.class
                 );
 

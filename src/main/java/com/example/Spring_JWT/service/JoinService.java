@@ -6,6 +6,7 @@ import com.example.Spring_JWT.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -14,7 +15,7 @@ public class JoinService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-
+    @Transactional
     public void joinProcess(JoinDTO joinDTO) {
         System.out.println("JWT log: " + "JoinService joinProcess");
         String username = joinDTO.getUsername();
