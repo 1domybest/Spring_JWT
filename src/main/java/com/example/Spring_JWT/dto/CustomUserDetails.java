@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 
-// 유저정보로 비지니스 로직 가공
+// 유저정보로 비지니스 로직 가공 내가 override를 사용해서 쓸수도있지만 추가로 내가 필요한 값을 추가할수있음
+// 예를들어 memberId 같은것
 @RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
@@ -33,6 +34,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public String getPassword() {
         return userEntity.getPassword();
+    }
+
+    public Long getMemberId() {
+        return userEntity.getId();
     }
 
     @Override

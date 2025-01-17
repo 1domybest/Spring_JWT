@@ -69,9 +69,10 @@ public class JWTUtil {
      * @param expiredMs 유효기간
      * @return String JWT 토큰
      */
-    public String createJwt(String username, String role, Long expiredMs) {
+    public String createJwt(String category, String username, String role, Long expiredMs) {
         System.out.println("등록한 시간 " + new Date(System.currentTimeMillis() + expiredMs));
         return Jwts.builder()
+                .claim("category", category)
                 .claim("username", username)
                 .claim("role", role)
                 .issuedAt(new Date(System.currentTimeMillis()))
@@ -79,5 +80,16 @@ public class JWTUtil {
                 .signWith(secretKey)
                 .compact();
     }
+
+
+    /**
+     * 토큰의 종류 확인코드
+     * @param token 토큰
+     * @return String [access, refresh]
+     */
+    public String getCategory(String token) {
+        return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload().get("category", String.class);
+    }
+
 
 }

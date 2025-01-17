@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class JWTFilter extends OncePerRequestFilter {
@@ -35,6 +36,13 @@ public class JWTFilter extends OncePerRequestFilter {
 
         // Bearer 부분 제거 후 순수 토큰만 획득
         String token = authorization.split(" ")[1];
+
+        //  리프레쉬 토큰이라면 return [refresh 는 오로지 재발급을 위한 토큰이기 때문에]
+        if (Objects.equals(jwtUtil.getCategory(token), "refresh")) {
+            System.out.println("token is refresh token");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         //토큰 만료 시간 검증
         if (jwtUtil.isExpired(token)) {
