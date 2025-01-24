@@ -39,7 +39,7 @@ public class JWTFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         System.out.println("JWT log: " + "JWTFilter doFilterInternal");
         // 헤더에서 access token 에 담긴 토큰을 꺼냄
-        String accessToken = request.getHeader(JwtConstants.ACCESS);
+        String accessToken = request.getHeader("authorization");
 
         // 토큰이 없다면 다음 필터로 넘김
         if (request.getRequestURI().equals("/login")) {
