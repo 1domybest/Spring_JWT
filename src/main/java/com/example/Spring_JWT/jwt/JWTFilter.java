@@ -42,13 +42,21 @@ public class JWTFilter extends OncePerRequestFilter {
         String accessToken = request.getHeader(JwtConstants.ACCESS);
 
         // 토큰이 없다면 다음 필터로 넘김
+        if (request.getRequestURI().equals("/login")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         if (accessToken == null) {
             // doFilter 는 SecurityConfig filterChain 에 등록된 필터중 현재 진행중인 필터를 pass 하고 다음 필터로 넘어가는 의미이다.
             // 단 문제가있을시에는 return 을 하는게맞다.
             // accessToken 이 없다는건 login 전 상태 요청일수도 있으니까 다음 필터로 넘기고 로그인을 진행해면 된다.
             // 아마 이다음 필터는 LoginFilter 임
-            filterChain.doFilter(request, response);
+            PrintWriter writer = response.getWriter();
+            writer.print("need access token");
             System.out.println("토큰이 없음");
+            //response status code
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         } else {
             System.out.println("토큰이 있음");
@@ -62,7 +70,7 @@ public class JWTFilter extends OncePerRequestFilter {
             //response body
             PrintWriter writer = response.getWriter();
             writer.print("access token expired");
-
+            System.out.println("토큰 만료됨");
             //response status code
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             // 만료시에는 doFilter 가 아닌 그냥 return

@@ -87,22 +87,26 @@ public class SecurityConfig {
                             @Override
                             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                                 CorsConfiguration configuration = new CorsConfiguration();
-                                // CORS는 프론트 서버의 포트와 백엔드 서버의 포트가 다르기때문에
-                                // 리소스의 교차로인한 충돌에러인데 그렇기때문에 이 백엔드서버가 반환해주는 주소중에
-                                // 이런것을 허용할 주소를 저장해두는 작업을 뜻한다.
-                                // CorsMvcConfig 에도 만들어서 이 주소를 사용하는것보니 스태틱으로 관리하거나 yml로 관리하는게 좋겠다.
-                                configuration.setAllowedOrigins(Collections.singletonList(CommonConstants.WEB_CLIENT_URL));
-                                configuration.setAllowedMethods(Collections.singletonList("*"));
+
+                                // 허용할 Origin 설정
+                                configuration.setAllowedOrigins(Collections.singletonList(CommonConstants.WEB_CLIENT_URL)); // React 클라이언트 URL
+
+                                // 허용할 HTTP 메서드
+                                configuration.setAllowedMethods(Collections.singletonList("*")); // 모든 HTTP 메서드 허용
+
+                                // 인증 정보 포함 허용
                                 configuration.setAllowCredentials(true);
-                                configuration.setAllowedHeaders(Collections.singletonList("*"));
 
-                                // 프론트쪽에서 이 필터체인에대한 검증결과에대한 유효시간이다.
-                                // 이시간안에서는 추가로 cors검사를 하지않는다.
-                                configuration.setMaxAge(3600L);
+                                // 허용할 요청 헤더
+                                configuration.setAllowedHeaders(Collections.singletonList("*")); // 모든 요청 헤더 허용
 
-                                // 노출할 헤더 명
-                                configuration.setExposedHeaders(Collections.singletonList("Authorization"));
-                                return null;
+                                // 프론트 쪽에 노출할 응답 헤더
+                                configuration.setExposedHeaders(Collections.singletonList("Authorization")); // Authorization 헤더 노출
+
+                                // CORS 검사 결과 캐싱 시간 설정
+                                configuration.setMaxAge(3600L); // 1시간(3600초)
+
+                                return configuration; // 올바른 CORS 설정 반환
                             }
                         })
                 );
@@ -119,12 +123,11 @@ public class SecurityConfig {
         http.httpBasic((auth) -> auth.disable());
 
         http.authorizeHttpRequests((auth) -> auth
-                .requestMatchers("/login", "/", "/join").permitAll() // 허용
+                .requestMatchers("/login", "/join").permitAll() // 허용
                 .requestMatchers("/admin").hasRole("ADMIN")
                 .requestMatchers("/reissue").permitAll()
                 // 권한필요 단 토큰이 없는데 여기까지 올일이 없음
                 // 단 혹시나 토큰이 없거나 role이 다르다면 바로 다음 필터로 넘어감
-
                 .anyRequest().authenticated() // 나머지는 다 가능 else
         );
 

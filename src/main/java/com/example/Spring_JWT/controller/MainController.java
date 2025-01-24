@@ -23,4 +23,12 @@ public class MainController {
         return "main Controller" + userInfo;
     }
 
+    @GetMapping("/tokenTest")
+    public String tokenTest(HttpServletResponse response) {
+        System.out.println("JWT log: " + "MainController tokenTest");
+        String userInfo = SecurityContextUtil.getUserInfoBySecurityContext(response);
+        System.out.println("userInfo: " + userInfo);
+        return "main Controller" + userInfo;
+    }
+
 }

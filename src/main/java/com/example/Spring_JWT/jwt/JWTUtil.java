@@ -7,6 +7,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -176,6 +178,20 @@ public class JWTUtil {
         response.addCookie(cookie); // 응답에 삭제용 쿠키 추가
     }
 
+    public String getRefreshToken(HttpServletRequest request) {
+        String refresh = null;
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+
+            if (cookie.getName().equals("refresh")) {
+
+                refresh = cookie.getValue();
+            }
+        }
+
+        return refresh;
+    }
+
 
     /**
      * 쿠키 전체 삭제
@@ -190,4 +206,6 @@ public class JWTUtil {
             }
         }
     }
+
+
 }

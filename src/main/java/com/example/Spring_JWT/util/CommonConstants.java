@@ -17,6 +17,6 @@ public class CommonConstants {
      * Client URL
      */
     public static final String WEB_CLIENT_PATH = "http://localhost:";
-    public static final String WEB_CLIENT_PORT = "8080";
+    public static final String WEB_CLIENT_PORT = "5173";
     public static final String WEB_CLIENT_URL = WEB_CLIENT_PATH+WEB_CLIENT_PORT;
 }
